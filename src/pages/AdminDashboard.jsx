@@ -843,13 +843,16 @@ export default function AdminDashboard() {
                           <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-200">Name</th>
                           <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-200">Email</th>
                           <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-200">Phone</th>
-                          <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-200">Joined Date</th>
+                          <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-200">Role</th>
+                          <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-200">Status</th>
+                          <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-200">Last Login</th>
+                          <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-200">Logins</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                         {users.length === 0 ? (
                           <tr>
-                            <td colSpan="4" className="px-6 py-4 text-center text-slate-500 dark:text-slate-400">
+                            <td colSpan="7" className="px-6 py-4 text-center text-slate-500 dark:text-slate-400">
                               No users found
                             </td>
                           </tr>
@@ -865,8 +868,31 @@ export default function AdminDashboard() {
                               <td className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300">
                                 {u.phone || 'N/A'}
                               </td>
+                              <td className="px-6 py-4 text-sm">
+                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                  u.role === 'DOCTOR' 
+                                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300'
+                                    : u.role === 'ADMIN'
+                                    ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                                    : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                                }`}>
+                                  {u.role || 'USER'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-sm">
+                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                  u.isActive
+                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                                    : 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
+                                }`}>
+                                  {u.isActive ? 'Active' : 'Inactive'}
+                                </span>
+                              </td>
                               <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
-                                {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A'}
+                                {u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : 'Never'}
+                              </td>
+                              <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
+                                {u.loginCount || 0}
                               </td>
                             </tr>
                           ))
