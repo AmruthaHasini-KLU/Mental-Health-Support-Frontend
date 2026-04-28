@@ -62,6 +62,7 @@ export default function Forums() {
   const [replyContent, setReplyContent] = useState('')
   const [replies, setReplies] = useState({})
   const [likedPosts, setLikedPosts] = useState(new Set())
+  const [error, setError] = useState(null)
 
   // Fetch posts on component mount and with auto-refresh polling
   useEffect(() => {
@@ -75,13 +76,16 @@ export default function Forums() {
 
   const fetchPosts = async () => {
     try {
+      setError(null)
       setLoading(true)
+      console.log('Fetching posts from:', api.defaults.baseURL + '/posts')
       const response = await api.get('/posts', {
         // Prevent caching to ensure fresh data
         headers: {
           'Cache-Control': 'no-cache, no-store, must-revalidate'
         }
       })
+      console.log('Posts fetched successfully:', response.data)
       const mapped = response.data.map(p => ({
         id: p.id,
         created_at: p.createdAt,
@@ -94,7 +98,8 @@ export default function Forums() {
       }))
       setPosts(mapped)
     } catch (error) {
-      console.error('Error:', error)
+      console.error('Error fetching posts:', error.response?.data || error.message)
+      setError(error.response?.data?.message || error.message || 'Failed to load posts')
       setPosts([])
     } finally {
       setLoading(false)
@@ -156,14 +161,17 @@ export default function Forums() {
         isAnonymous: false
       })
       setShowCreatePost(false)
+      setError(null)
       
       // Refresh posts from backend to ensure sync
       setTimeout(() => {
         fetchPosts()
       }, 500)
     } catch (error) {
-      console.error('Error:', error)
-      alert('Failed to create post. Please try again.')
+      const errorMsg = error.response?.data?.message || error.message || 'Failed to create post. Please try again.'
+      console.error('Error creating post:', errorMsg)
+      setError(errorMsg)
+      alert(errorMsg)
     }
   }
 
@@ -365,6 +373,21 @@ export default function Forums() {
 
             {/* Main Content - Posts Feed */}
             <div className="lg:col-span-3">
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-4 p-4 rounded-lg bg-red-100 border border-red-300 text-red-800"
+                >
+                  <p className="font-medium">Error: {error}</p>
+                  <button
+                    onClick={fetchPosts}
+                    className="mt-2 px-3 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                  >
+                    Retry
+                  </button>
+                </motion.div>
+              )}
               {loading ? (
                 <div className="text-center py-12">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
