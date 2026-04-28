@@ -12,7 +12,8 @@ import {
   TrendingUp,
   BookOpen,
   Briefcase,
-  Sparkles
+  Sparkles,
+  RefreshCw
 } from 'lucide-react'
 import Layout from '../layouts/Layout'
 import AIAssistant from '../components/AIAssistant'
@@ -62,15 +63,25 @@ export default function Forums() {
   const [replies, setReplies] = useState({})
   const [likedPosts, setLikedPosts] = useState(new Set())
 
-  // Fetch posts on component mount and when category changes
+  // Fetch posts on component mount and with auto-refresh polling
   useEffect(() => {
     fetchPosts()
-  }, []) // Removed dependency on selectedCategory as backend does not filter by it now
+    // Poll for new posts every 10 seconds
+    const interval = setInterval(() => {
+      fetchPosts()
+    }, 10000)
+    return () => clearInterval(interval)
+  }, [])
 
   const fetchPosts = async () => {
     try {
       setLoading(true)
-      const response = await api.get('/posts')
+      const response = await api.get('/posts', {
+        // Prevent caching to ensure fresh data
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate'
+        }
+      })
       const mapped = response.data.map(p => ({
         id: p.id,
         created_at: p.createdAt,
@@ -145,8 +156,14 @@ export default function Forums() {
         isAnonymous: false
       })
       setShowCreatePost(false)
+      
+      // Refresh posts from backend to ensure sync
+      setTimeout(() => {
+        fetchPosts()
+      }, 500)
     } catch (error) {
       console.error('Error:', error)
+      alert('Failed to create post. Please try again.')
     }
   }
 
@@ -276,6 +293,14 @@ export default function Forums() {
               >
                 <Plus size={20} />
                 <span className="font-medium">New Post</span>
+              </button>
+              <button
+                onClick={fetchPosts}
+                disabled={loading}
+                className="flex items-center gap-2 px-4 py-3 border-2 border-primary-600 text-primary-600 dark:text-primary-400 rounded-xl hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Refresh posts"
+              >
+                <RefreshCw size={20} className={loading ? 'animate-spin' : ''} />
               </button>
             </div>
           </div>

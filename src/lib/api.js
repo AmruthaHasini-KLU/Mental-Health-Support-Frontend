@@ -22,6 +22,10 @@ api.interceptors.request.use(
 // Response interceptor to handle token expiration or unauthorized errors
 api.interceptors.response.use(
   (response) => {
+    // Disable caching for all responses to ensure fresh data
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+    response.headers['Pragma'] = 'no-cache';
+    response.headers['Expires'] = '0';
     return response;
   },
   (error) => {
