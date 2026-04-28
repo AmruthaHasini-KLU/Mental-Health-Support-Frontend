@@ -60,6 +60,9 @@ export default function AdminDashboard() {
   // --- THERAPY REQUESTS STATE ---
   const [therapyRequests, setTherapyRequests] = useState([])
 
+  // --- USERS STATE ---
+  const [users, setUsers] = useState([])
+
   const formatStatusLabel = (status) => {
     if (!status) return 'Pending'
     const normalized = status.toString().toLowerCase()
@@ -86,15 +89,17 @@ export default function AdminDashboard() {
 
   const fetchInitialData = async () => {
     try {
-      const [requestsRes, doctorsRes, postsRes] = await Promise.all([
+      const [requestsRes, doctorsRes, postsRes, usersRes] = await Promise.all([
         api.get('/admin/requests'),
         api.get('/admin/doctors'),
-        api.get('/posts')
+        api.get('/posts'),
+        api.get('/admin/users')
       ])
 
       const requests = requestsRes.data
       const docs = doctorsRes.data
       const posts = postsRes.data
+      const usersData = usersRes.data
 
       setTherapyRequests(requests.map(r => ({
         id: r.id,
@@ -111,6 +116,9 @@ export default function AdminDashboard() {
 
       setDoctors(docs)
       setDoctorOptions(docs)
+      
+      // Set users data
+      setUsers(usersData)
 
       const stress = []
       const yoga = []
@@ -405,6 +413,18 @@ export default function AdminDashboard() {
               <Users size={20} />
               <span className="font-medium">Doctor Management</span>
             </button>
+
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                activeTab === 'users'
+                  ? 'bg-indigo-600 text-white'
+                  : 'text-slate-300 hover:bg-slate-800'
+              }`}
+            >
+              <Users size={20} />
+              <span className="font-medium">Registered Users</span>
+            </button>
           </nav>
 
           {/* User Info & Logout */}
@@ -441,6 +461,7 @@ export default function AdminDashboard() {
               {activeTab === 'content' && 'Content Manager'}
               {activeTab === 'therapy' && 'Therapy Hub'}
               {activeTab === 'doctors' && 'Doctor Management'}
+              {activeTab === 'users' && 'Registered Users'}
             </h1>
             <div className="w-10"></div>
           </div>
@@ -794,6 +815,62 @@ export default function AdminDashboard() {
                             </td>
                           </tr>
                         ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* USERS TAB */}
+            {activeTab === 'users' && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-6"
+              >
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                    Total Users: {users.length}
+                  </h2>
+                </div>
+
+                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-slate-50 dark:bg-slate-700">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-200">Name</th>
+                          <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-200">Email</th>
+                          <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-200">Phone</th>
+                          <th className="px-6 py-3 text-left text-sm font-semibold text-slate-700 dark:text-slate-200">Joined Date</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                        {users.length === 0 ? (
+                          <tr>
+                            <td colSpan="4" className="px-6 py-4 text-center text-slate-500 dark:text-slate-400">
+                              No users found
+                            </td>
+                          </tr>
+                        ) : (
+                          users.map((u) => (
+                            <tr key={u.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                              <td className="px-6 py-4 text-sm text-slate-900 dark:text-white font-medium">
+                                {u.name || 'N/A'}
+                              </td>
+                              <td className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300">
+                                {u.email || 'N/A'}
+                              </td>
+                              <td className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300">
+                                {u.phone || 'N/A'}
+                              </td>
+                              <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
+                                {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'N/A'}
+                              </td>
+                            </tr>
+                          ))
+                        )}
                       </tbody>
                     </table>
                   </div>
